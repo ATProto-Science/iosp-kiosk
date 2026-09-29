@@ -29,6 +29,19 @@
     .stat-row div { font-size: 0.9rem; color: var(--smoke); }
     .stat-row strong { display: block; font-size: 1.6rem; color: var(--ash); }
     .ticket-ids { font-family: ui-monospace, monospace; font-size: 0.9rem; word-break: break-all; }
+    table.rows { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    table.rows th, table.rows td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--log); }
+    table.rows code { font-family: ui-monospace, monospace; }
+    table.rows .status-open { color: var(--smoke); }
+    table.rows .status-claimed { color: var(--fire); }
+    table.rows .status-revoked { color: var(--ember); text-decoration: line-through; }
+    table.rows button {
+      padding: 0.3rem 0.7rem; background-color: var(--log); color: var(--ash);
+      border: none; border-radius: 4px; font-size: 0.85rem; cursor: pointer;
+    }
+    table.rows button:hover { background-color: var(--ember); }
+    table.rows button.unrevoke { background-color: var(--fire); }
+    .table-wrap { max-height: 50vh; overflow-y: auto; }
     [hidden] { display: none !important; }
   </style>
 </head>
@@ -106,6 +119,28 @@
           </form>
           <div id="mint-tickets-result"></div>
         </div>
+
+        <div class="style-card" id="tickets-table-card" hidden>
+          <h3>Tickets</h3>
+          <button type="button" id="refresh-tickets">Refresh</button>
+          <div id="tickets-table-result"></div>
+          <div class="table-wrap"><table class="rows" id="tickets-table">
+            <thead><tr><th>ID</th><th>Status</th><th>Claimed</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
+
+        <div class="style-card" id="codes-table-card" hidden>
+          <h3>Codes</h3>
+          <p class="smoke-text">Codes are shown masked — full values never appear here, only
+          via a real participant claim.</p>
+          <button type="button" id="refresh-codes">Refresh</button>
+          <div id="codes-table-result"></div>
+          <div class="table-wrap"><table class="rows" id="codes-table">
+            <thead><tr><th>PDS</th><th>Code</th><th>Uses</th><th>Status</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table></div>
+        </div>
       </div>
     </section>
   </main>
@@ -119,7 +154,8 @@
   <script>
     // The admin token lives only in this variable: not localStorage/sessionStorage, not a URL
     // param (which would land in browser history), not logged anywhere.
-    const API = "/api";
+    // Same-origin in production; ?api= lets a local test point at `wrangler dev` (matches ticket.html's pattern).
+    const API = new URLSearchParams(location.search).get("api") || "/api";
     let adminToken = null;
 
     const msg = (el, cls, text) => { el.innerHTML = `<div class="msg ${cls}">${text}</div>`; };
@@ -147,6 +183,85 @@
       }
     }
 
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+    async function loadTicketsTable() {
+      const resultEl = document.getElementById("tickets-table-result");
+      const tbody = document.querySelector("#tickets-table tbody");
+      try {
+        const { tickets } = await adminCall("/admin/tickets");
+        tbody.innerHTML = tickets
+          .map((t) => {
+            const status = t.disabled ? "revoked" : t.claimed ? "claimed" : "open";
+            const label = t.disabled ? "Revoked" : t.claimed ? `Claimed — ${esc(t.pds)}` : "Open";
+            return `<tr>
+              <td><code>${esc(t.id)}</code></td>
+              <td class="status-${status}">${label}</td>
+              <td>${t.claimedAt ? esc(t.claimedAt.replace("T", " ").replace("Z", "")) : "–"}</td>
+              <td><button data-revoke-ticket="${esc(t.id)}" class="${t.disabled ? "unrevoke" : ""}">${t.disabled ? "Un-revoke" : "Revoke"}</button></td>
+            </tr>`;
+          })
+          .join("") || `<tr><td colspan="4" class="smoke-text">no tickets yet</td></tr>`;
+        resultEl.innerHTML = "";
+      } catch (err) {
+        msg(resultEl, "error", "Couldn't load tickets: " + err.message);
+      }
+    }
+
+    async function loadCodesTable() {
+      const resultEl = document.getElementById("codes-table-result");
+      const tbody = document.querySelector("#codes-table tbody");
+      try {
+        const { codes } = await adminCall("/admin/codes");
+        tbody.innerHTML = codes
+          .map((c) => {
+            const status = c.disabled ? "revoked" : c.uses >= c.maxUses ? "claimed" : "open";
+            const label = c.disabled ? "Revoked" : c.uses >= c.maxUses ? "Exhausted" : "Available";
+            return `<tr>
+              <td>${esc(c.pds)}</td>
+              <td><code>${esc(c.code)}</code></td>
+              <td>${c.uses}/${c.maxUses}</td>
+              <td class="status-${status}">${label}</td>
+              <td><button data-revoke-code="${c.id}" class="${c.disabled ? "unrevoke" : ""}">${c.disabled ? "Un-revoke" : "Revoke"}</button></td>
+            </tr>`;
+          })
+          .join("") || `<tr><td colspan="5" class="smoke-text">no codes yet</td></tr>`;
+        resultEl.innerHTML = "";
+      } catch (err) {
+        msg(resultEl, "error", "Couldn't load codes: " + err.message);
+      }
+    }
+
+    document.querySelector("#tickets-table tbody").addEventListener("click", async (e) => {
+      const id = e.target.dataset.revokeTicket;
+      if (!id) return;
+      e.target.disabled = true;
+      try {
+        await adminCall(`/admin/tickets/${id}/revoke`, { method: "POST", body: "{}" });
+        loadTicketsTable();
+      } catch (err) {
+        msg(document.getElementById("tickets-table-result"), "error", "Couldn't revoke: " + err.message);
+        e.target.disabled = false;
+      }
+    });
+
+    document.querySelector("#codes-table tbody").addEventListener("click", async (e) => {
+      const id = e.target.dataset.revokeCode;
+      if (!id) return;
+      e.target.disabled = true;
+      try {
+        await adminCall(`/admin/codes/${id}/revoke`, { method: "POST", body: "{}" });
+        loadCodesTable();
+        refreshStats();
+      } catch (err) {
+        msg(document.getElementById("codes-table-result"), "error", "Couldn't revoke: " + err.message);
+        e.target.disabled = false;
+      }
+    });
+
+    document.getElementById("refresh-tickets").addEventListener("click", loadTicketsTable);
+    document.getElementById("refresh-codes").addEventListener("click", loadCodesTable);
+
     document.getElementById("admin-unlock-form").addEventListener("submit", async (e) => {
       e.preventDefault();
       const resultEl = document.getElementById("admin-unlock-result");
@@ -159,6 +274,10 @@
         document.getElementById("admin-panel").hidden = false;
         document.getElementById("load-codes-card").hidden = false;
         document.getElementById("mint-tickets-card").hidden = false;
+        document.getElementById("tickets-table-card").hidden = false;
+        document.getElementById("codes-table-card").hidden = false;
+        loadTicketsTable();
+        loadCodesTable();
       } catch (err) {
         adminToken = null;
         msg(resultEl, "error", "Couldn't unlock: " + err.message);
@@ -181,6 +300,7 @@
         msg(resultEl, "success", `Loaded ${added} of ${codes.length} pasted code(s) for ${pds} (duplicates are skipped).`);
         document.getElementById("codes-text").value = "";
         refreshStats();
+        loadCodesTable();
       } catch (err) {
         msg(resultEl, "error", "Couldn't load codes: " + err.message);
       } finally {
@@ -201,6 +321,7 @@
           <p class="session-note">Print the QR sheet for these from a laptop with Node:
           <code>cd tools && ADMIN_TOKEN=… node make-tickets.mjs --unclaimed</code></p>`;
         refreshStats();
+        loadTicketsTable();
       } catch (err) {
         msg(resultEl, "error", "Couldn't mint tickets: " + err.message);
       } finally {

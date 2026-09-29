@@ -32,4 +32,53 @@ ok('stats', s === 200 && t.codesLeft.aster === 0 && t.tickets.claimed === 3, t);
 [s, t] = await get('/admin/tickets?unclaimed=1', A);
 ok('admin ticket list (unclaimed only)', s === 200 && t.tickets.length === 2 && t.tickets.every((x) => !x.claimed), t);
 ok('bad pds rejected', (await post(`/ticket/${ids[4]}/claim`, { pds: 'nope' }, {}))[0] === 400);
+
+// --- revoke: tickets ---
+const stillOpen = ids.slice(1).filter((id, i) => race[i][0] === 409 && id !== loser);
+ok('exactly 2 tickets still open going into revoke tests', stillOpen.length === 2, stillOpen);
+const [victim, spare] = stillOpen;
+
+[s, t] = await post(`/admin/tickets/${victim}/revoke`, {});
+ok('revoke ticket toggles disabled=true', s === 200 && t.disabled === true, t);
+[s, t] = await get('/ticket/' + victim);
+ok('revoked ticket looks exactly like unknown to the public route', s === 404 && t.error === 'unknown ticket', t);
+[s, t] = await post(`/ticket/${victim}/claim`, { pds: 'memo' }, {});
+ok('revoked ticket cannot be claimed', s === 404, t);
+[s, t] = await get('/admin/tickets?unclaimed=1', A);
+ok('revoked-but-unclaimed ticket excluded from the reprint list', s === 200 && !t.tickets.some((x) => x.id === victim), t);
+
+[s, t] = await post(`/admin/tickets/${victim}/revoke`, {});
+ok('revoking again un-revokes (toggle)', s === 200 && t.disabled === false, t);
+[s, t] = await get('/ticket/' + victim);
+ok('un-revoked ticket is visible again', s === 200, t);
+
+ok('revoke on unknown ticket 404s', (await post('/admin/tickets/ZZZZ/revoke', {}))[0] === 404);
+
+[s, t] = await get('/admin/tickets', A);
+const spareRow = t.tickets.find((x) => x.id === spare);
+ok('full admin ticket list includes pds/disabled/timestamps', s === 200 && spareRow && spareRow.disabled === false && 'createdAt' in spareRow, spareRow);
+
+// --- revoke: codes ---
+[s, t] = await get('/admin/codes', A);
+const memoCode = t.codes.find((c) => c.pds === 'memo');
+ok('admin code list masks the value, exposes uses/maxUses', s === 200 && memoCode && memoCode.code !== 'test-memo-1' && memoCode.code.includes('…') && memoCode.uses === 1 && memoCode.maxUses === 3, memoCode);
+
+[s, t] = await post(`/admin/codes/${memoCode.id}/revoke`, {});
+ok('revoke code toggles disabled=true', s === 200 && t.disabled === true, t);
+[s, t] = await get('/ticket/' + spare);
+ok('availability drops to 0 once the only memo code is revoked', s === 200 && t.available.memo === 0, t);
+[s, t] = await post(`/ticket/${spare}/claim`, { pds: 'memo' }, {});
+ok('claiming against a fully-revoked pds pool is refused, ticket released', s === 409, t);
+[s, t] = await get('/ticket/' + spare);
+ok('released ticket is unclaimed again after the refused claim', s === 200 && !t.claimed, t);
+
+[s, t] = await post(`/admin/codes/${memoCode.id}/revoke`, {});
+ok('un-revoking the code restores it', s === 200 && t.disabled === false, t);
+[s, t] = await get('/ticket/' + spare);
+ok('availability comes back', s === 200 && t.available.memo === 2, t); // test-memo-1: maxUses 3, 1 real use so far
+
+ok('revoke on unknown code id 404s', (await post('/admin/codes/999999/revoke', {}))[0] === 404);
+ok('revoke on non-numeric code id 400s', (await post('/admin/codes/nope/revoke', {}))[0] === 400);
+ok('code revoke needs admin token', (await post(`/admin/codes/${memoCode.id}/revoke`, {}, {}))[0] === 401);
+
 console.log(fails ? `\n${fails} FAILED` : '\nall passed'); process.exit(fails ? 1 : 0);
