@@ -109,15 +109,29 @@
 
         <div class="style-card" id="mint-tickets-card" hidden>
           <h3>Mint tickets</h3>
-          <p>Creates fresh, unclaimed ticket ids. To turn them into a printable QR sheet, run
-          <code>tools/make-tickets.mjs --unclaimed</code> afterwards (needs Node — not done from
-          this page).</p>
+          <p>Creates fresh, unclaimed ticket ids (just the ids — see "Print QR sheet" below to
+          turn them into something you can actually hand out).</p>
           <form id="mint-tickets-form" class="admin-form">
             <label for="mint-count">How many</label>
             <input id="mint-count" type="number" min="1" max="500" value="60">
             <button type="submit">Mint tickets</button>
           </form>
           <div id="mint-tickets-result"></div>
+        </div>
+
+        <div class="style-card" id="print-sheet-card" hidden>
+          <h3>Print QR sheet</h3>
+          <p>Right in the browser — no laptop/Node needed. Opens a print-ready A4 sheet in a new
+          tab and triggers the print dialog; each QR encodes only a ticket id
+          (<code>kiosk.tilde.style/t/&lt;id&gt;</code>), never an invite code.</p>
+          <div class="admin-form">
+            <label for="print-mint-count">Mint this many new tickets, then print</label>
+            <input id="print-mint-count" type="number" min="1" max="500" value="60">
+            <button type="button" id="print-mint-btn">Mint &amp; print</button>
+          </div>
+          <p class="session-note">— or —</p>
+          <button type="button" id="print-unclaimed-btn">Print every still-unclaimed ticket</button>
+          <div id="print-sheet-result"></div>
         </div>
 
         <div class="style-card" id="tickets-table-card" hidden>
@@ -259,6 +273,78 @@
       }
     });
 
+    // Print QR sheet — same layout/library as tools/make-tickets.mjs, rendered client-side.
+    // The popup is opened SYNCHRONOUSLY on click (before any await) so browsers don't treat
+    // it as an unrequested popup and block it; it's filled in once the async QR work finishes.
+    const TICKET_BASE = "https://kiosk.tilde.style/t/";
+    let qrLibPromise = null;
+    function getQrLib() {
+      if (!qrLibPromise) qrLibPromise = import("https://esm.sh/qrcode@1.5.4").then((m) => m.default ?? m);
+      return qrLibPromise;
+    }
+
+    async function printTicketSheet(ids, win) {
+      if (!ids.length) { win.close(); return; }
+      const QRCode = await getQrLib();
+      const cells = [];
+      for (const id of ids) {
+        const svg = await QRCode.toString(TICKET_BASE + id, { type: "svg", margin: 1, errorCorrectionLevel: "M" });
+        cells.push(`<div class="t"><div class="qr">${svg}</div><div class="id">${esc(id)}</div><div class="url">${esc(TICKET_BASE.replace("https://", "") + id)}</div></div>`);
+      }
+      win.document.open();
+      win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>IOSP tickets</title><style>
+        @page { size: A4; margin: 10mm; }
+        body { font-family: system-ui, sans-serif; margin: 0; }
+        .sheet { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .t { border: 1px dashed #999; padding: 6mm 4mm; text-align: center; break-inside: avoid; height: 62mm; box-sizing: border-box; }
+        .qr svg { width: 38mm; height: 38mm; }
+        .id { font: 700 7mm/1.2 ui-monospace, monospace; letter-spacing: 0.15em; }
+        .url { font-size: 3mm; color: #555; }
+        </style></head><body><div class="sheet">${cells.join("\n")}</div></body></html>`);
+      win.document.close();
+      win.print();
+    }
+
+    document.getElementById("print-mint-btn").addEventListener("click", async (e) => {
+      const resultEl = document.getElementById("print-sheet-result");
+      const count = Number(document.getElementById("print-mint-count").value) || 1;
+      const win = window.open("", "_blank");
+      if (!win) return msg(resultEl, "error", "Popup blocked — allow popups for this site and try again.");
+      win.document.write("<p>Minting tickets and building QR codes…</p>");
+      e.target.disabled = true;
+      try {
+        const { ids } = await adminCall("/admin/tickets", { method: "POST", body: JSON.stringify({ count }) });
+        await printTicketSheet(ids, win);
+        resultEl.innerHTML = "";
+        refreshStats();
+        loadTicketsTable();
+      } catch (err) {
+        win.close();
+        msg(resultEl, "error", "Couldn't print: " + err.message);
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+
+    document.getElementById("print-unclaimed-btn").addEventListener("click", async (e) => {
+      const resultEl = document.getElementById("print-sheet-result");
+      const win = window.open("", "_blank");
+      if (!win) return msg(resultEl, "error", "Popup blocked — allow popups for this site and try again.");
+      win.document.write("<p>Loading unclaimed tickets and building QR codes…</p>");
+      e.target.disabled = true;
+      try {
+        const { tickets } = await adminCall("/admin/tickets?unclaimed=1");
+        if (!tickets.length) { win.close(); msg(resultEl, "error", "No unclaimed tickets to print."); return; }
+        await printTicketSheet(tickets.map((t) => t.id), win);
+        resultEl.innerHTML = "";
+      } catch (err) {
+        win.close();
+        msg(resultEl, "error", "Couldn't print: " + err.message);
+      } finally {
+        e.target.disabled = false;
+      }
+    });
+
     document.getElementById("refresh-tickets").addEventListener("click", loadTicketsTable);
     document.getElementById("refresh-codes").addEventListener("click", loadCodesTable);
 
@@ -274,6 +360,7 @@
         document.getElementById("admin-panel").hidden = false;
         document.getElementById("load-codes-card").hidden = false;
         document.getElementById("mint-tickets-card").hidden = false;
+        document.getElementById("print-sheet-card").hidden = false;
         document.getElementById("tickets-table-card").hidden = false;
         document.getElementById("codes-table-card").hidden = false;
         loadTicketsTable();
