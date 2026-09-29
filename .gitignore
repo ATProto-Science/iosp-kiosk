@@ -2,3 +2,6 @@
 assets/desk-qr.*
 node_modules/
 .env*
+worker/.state/
+worker/.dev.vars
+worker/.wrangler/

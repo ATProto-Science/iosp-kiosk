@@ -1,0 +1,1 @@
+{ "name": "iosp-kiosk-api", "private": true, "type": "module", "scripts": { "dev": "wrangler dev --local --persist-to .state", "test": "node test.mjs" }, "devDependencies": { "wrangler": "^4" } }
