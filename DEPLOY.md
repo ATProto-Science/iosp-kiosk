@@ -43,9 +43,13 @@ T=<the ADMIN_TOKEN>; A=https://kiosk.tilde.style/api/admin
 # Aster: single-use codes, one per line in a file OUTSIDE the repo
 jq -Rn '[inputs]|{pds:"aster",maxUses:1,codes:.}' < ~/aster-codes.txt \
   | curl -s -X POST -H "authorization: Bearer $T" -H 'content-type: application/json' -d @- $A/codes
-# memo.dog: a few multi-use codes (mint fresh ones on haensel; do not reuse the leaked one)
-curl -s -X POST -H "authorization: Bearer $T" -H 'content-type: application/json' \
-  -d '{"pds":"memo","maxUses":50,"codes":["<code>"]}' $A/codes
+# memo.dog: mint a fresh multi-use code straight from admin.memo.dog into the ticket API
+# (never reuse the leaked one). Password is in tkeys as memo-dog-tranquil/admin-password.
+cd tools
+ADMIN_HANDLE=admin.memo.dog ADMIN_TOKEN=$T \
+  PDS_ADMIN_PASSWORD="$(tkeys show memo-dog-tranquil/admin-password | head -1)" \
+  node mint-memo-codes.mjs --uses 50
+cd ..
 curl -s -H "authorization: Bearer $T" $A/stats
 ```
 

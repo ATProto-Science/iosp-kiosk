@@ -1,12 +1,17 @@
 // Mint a multi-use memo.dog invite code on the PDS and load it into the ticket service.
 // The code is NEVER printed or written to disk: it goes PDS -> memory -> ticket API.
 //
-//   ADMIN_HANDLE=<pds admin handle> ADMIN_TOKEN=$(cat ~/.config/iosp-kiosk/admin-token) \
+//   ADMIN_HANDLE=admin.memo.dog ADMIN_TOKEN="$(tkeys show kiosk-tilde-style-admin-token | head -1)" \
+//   PDS_ADMIN_PASSWORD="$(tkeys show memo-dog-tranquil/admin-password | head -1)" \
 //     node mint-memo-codes.mjs [--uses 50] [--codes 1]
 //   options: --pds https://memo.dog   --api https://kiosk.tilde.style/api
 //
-// Prompts for the PDS admin account's password (hidden). Needs a PDS whose
-// com.atproto.server.createInviteCode accepts that account (tranquil-pds admin).
+// Prompts for the PDS admin account's password (hidden) if PDS_ADMIN_PASSWORD isn't set.
+// Needs a PDS whose com.atproto.server.createInviteCode accepts that account. On memo.dog
+// (tranquil-pds) the admin is admin.memo.dog — the first account created on the instance,
+// since tranquil-pds has no separate admin-password concept — password in tkeys as
+// memo-dog-tranquil/admin-password. Don't use pds-operator for this: its own
+// identifier+password login is bugged against tranquil-pds (see tracker-unef).
 
 import readline from 'node:readline';
 
