@@ -20,14 +20,20 @@ export function getClient() {
 
 // Never returns: navigates the browser to the PDS. `state` round-trips the ticket id.
 //
-// UNTESTED as of 2026-09-29: the working, screenshot-confirmed signup flow used scope
-// "atproto" alone. Adding the repo: scope here is believed correct (mirrors atmoquest's
-// own least-privilege pattern for a granular-scope PDS) but hasn't been run against a
-// real aster.id signup yet — do that with the next spare invite code, checking both that
-// signup still completes AND that welcome.html's check-in write actually succeeds.
+// `redirect_uri` MUST be explicit: client-metadata.json lists two redirect_uris (/staff,
+// /welcome — /staff predates this flow, kept for the invite-desk admin page's own possible
+// future OAuth use), and the library silently defaults to redirect_uris[0] if not told
+// otherwise. Confirmed live 2026-09-29: a real signup came back on /staff instead of
+// /welcome because of exactly this, losing the callback (recoverable only by hand-editing
+// the returned URL's path before the auth code expired).
 export async function startSignup(pdsUrl, ticketId) {
   const client = await getClient();
-  await client.signIn(pdsUrl, { prompt: "create", scope: SIGNUP_SCOPE, state: ticketId });
+  await client.signIn(pdsUrl, {
+    prompt: "create",
+    scope: SIGNUP_SCOPE,
+    state: ticketId,
+    redirect_uri: "https://kiosk.tilde.style/welcome",
+  });
 }
 
 export async function restoreSession() {

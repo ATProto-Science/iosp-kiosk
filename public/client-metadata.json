@@ -3,7 +3,6 @@
   "client_name": "IOSP 2026 Kiosk",
   "client_uri": "https://kiosk.tilde.style/",
   "redirect_uris": [
-    "https://kiosk.tilde.style/staff",
     "https://kiosk.tilde.style/welcome"
   ],
   "grant_types": [
@@ -12,7 +11,7 @@
   "response_types": [
     "code"
   ],
-  "scope": "atproto transition:generic",
+  "scope": "atproto transition:generic repo:style.tilde.hacking.checkin?action=create",
   "application_type": "web",
   "dpop_bound_access_tokens": true,
   "token_endpoint_auth_method": "none"
