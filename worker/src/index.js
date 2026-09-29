@@ -3,6 +3,7 @@
 //   GET  /api/ticket/:id            ticket state + which PDSes still have codes
 //   POST /api/ticket/:id/claim      {pds}  -> {pds, code}   (idempotent per ticket)
 //   POST /api/admin/tickets         {count}               -> {ids}
+//   GET  /api/admin/tickets[?unclaimed=1]                 -> {tickets:[{id,claimed}]}
 //   POST /api/admin/codes           {pds, codes[], maxUses} -> {added}
 //   GET  /api/admin/stats
 // Admin routes need `Authorization: Bearer <ADMIN_TOKEN>`.
@@ -106,6 +107,11 @@ const handler = {
 					if (r.meta.changes === 1) ids.push(id);
 				}
 				return json({ ids });
+			}
+			if (parts[2] === 'tickets' && req.method === 'GET') {
+				const q = url.searchParams.get('unclaimed') ? 'WHERE pds IS NULL' : '';
+				const { results } = await db.prepare(`SELECT id, pds IS NOT NULL AS claimed FROM tickets ${q} ORDER BY created_at, id`).all();
+				return json({ tickets: results.map((r) => ({ id: r.id, claimed: !!r.claimed })) });
 			}
 			if (parts[2] === 'codes' && req.method === 'POST') {
 				const { pds, codes, maxUses = 1 } = await req.json().catch(() => ({}));

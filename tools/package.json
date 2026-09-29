@@ -2,5 +2,8 @@
   "name": "iosp-kiosk-tools",
   "private": true,
   "type": "module",
-  "dependencies": { "@atproto/oauth-client-node": "^0.4.9" }
+  "dependencies": {
+    "@atproto/oauth-client-node": "^0.4.9",
+    "qrcode": "^1.5.4"
+  }
 }

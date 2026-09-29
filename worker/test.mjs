@@ -29,5 +29,7 @@ const loser = ids.slice(1).find((_, i) => race[i][0] === 409);
 ok('ticket refused by aster can still claim memo', s === 200 && t.code === 'test-memo-1', [s, t]);
 [s, t] = await get('/admin/stats', A);
 ok('stats', s === 200 && t.codesLeft.aster === 0 && t.tickets.claimed === 3, t);
+[s, t] = await get('/admin/tickets?unclaimed=1', A);
+ok('admin ticket list (unclaimed only)', s === 200 && t.tickets.length === 2 && t.tickets.every((x) => !x.claimed), t);
 ok('bad pds rejected', (await post(`/ticket/${ids[4]}/claim`, { pds: 'nope' }, {}))[0] === 400);
 console.log(fails ? `\n${fails} FAILED` : '\nall passed'); process.exit(fails ? 1 : 0);

@@ -46,10 +46,17 @@ jq -Rn '[inputs]|{pds:"aster",maxUses:1,codes:.}' < ~/aster-codes.txt \
 # memo.dog: a few multi-use codes (mint fresh ones on haensel; do not reuse the leaked one)
 curl -s -X POST -H "authorization: Bearer $T" -H 'content-type: application/json' \
   -d '{"pds":"memo","maxUses":50,"codes":["<code>"]}' $A/codes
-# ~50 tickets (+ spares)
-curl -s -X POST -H "authorization: Bearer $T" -H 'content-type: application/json' -d '{"count":60}' $A/tickets
 curl -s -H "authorization: Bearer $T" $A/stats
 ```
+
+Mint tickets and print the QR sheet (writes `tools/qr-sheet.local.html`, gitignored; the QR codes
+carry only ticket ids, never invite codes):
+```sh
+cd tools && npm install
+ADMIN_TOKEN=$T node make-tickets.mjs --mint 60         # ~50 participants + spares
+ADMIN_TOKEN=$T node make-tickets.mjs --unclaimed       # later: reprint whatever is still unused
+```
+Open the HTML, print on A4, cut along the dashed lines.
 
 ## 4. Test end to end once, with a spare Aster code
 
