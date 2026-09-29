@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome — IOSP 2026</title>
+  <link rel="stylesheet" href="https://hacking.tilde.style/site.css">
+</head>
+<body class="clearing">
+  <header class="hearth"><div class="hearth-inner">
+    <h1 class="site-name">You're in 🎉</h1>
+    <p class="site-tagline">Your account is ready.</p>
+  </div></header>
+  <main><section class="gathered"><div class="gathered-inner"><div class="style-card">
+    <p id="msg">Finishing up…</p>
+    <p><a class="spark" href="https://hacking.tilde.style/">Continue to the workshop stations →</a></p>
+  </div></div></section></main>
+  <script type="module">
+    import { restoreSession } from "/oauth.js";
+    const msg = document.getElementById("msg");
+    try {
+      const r = await restoreSession();
+      if (!r) msg.textContent = "Nothing to finish here — if you meant to sign up, open your ticket link.";
+      else {
+        const did = r.session.did;
+        let handle = did;
+        try { // public lookup on the account's own PDS
+          const issuer = (await r.session.getTokenInfo()).aud;
+          const d = await (await fetch(`${issuer}/xrpc/com.atproto.repo.describeRepo?repo=${encodeURIComponent(did)}`)).json();
+          if (d.handle) handle = "@" + d.handle;
+        } catch {}
+        msg.textContent = `Welcome, ${handle}!`;
+      }
+    } catch (e) { msg.textContent = "Signup finished, but we couldn't confirm the session: " + e.message; }
+  </script>
+</body>
+</html>

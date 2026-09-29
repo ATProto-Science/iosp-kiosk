@@ -71,7 +71,7 @@ async function claim(db, id, pds) {
 	return json({ pds, code: taken.code });
 }
 
-export default {
+const handler = {
 	async fetch(req, env) {
 		const url = new URL(req.url);
 		const parts = url.pathname.split('/').filter(Boolean); // ['api', ...]
@@ -124,5 +124,16 @@ export default {
 			}
 		}
 		return json({ error: 'not found' }, 404);
+	}
+};
+
+// DEV_CORS is only ever set in worker/.dev.vars, so local page tests can call this API cross-origin.
+export default {
+	async fetch(req, env) {
+		if (env.DEV_CORS && req.method === 'OPTIONS')
+			return new Response(null, { headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*' } });
+		const res = await handler.fetch(req, env);
+		if (env.DEV_CORS) res.headers.set('access-control-allow-origin', '*');
+		return res;
 	}
 };
