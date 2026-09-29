@@ -1,0 +1,6 @@
+{
+  "name": "iosp-kiosk-tools",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@atproto/oauth-client-node": "^0.4.9" }
+}
