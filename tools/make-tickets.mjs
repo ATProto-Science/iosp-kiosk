@@ -3,6 +3,7 @@
 //   ADMIN_TOKEN=... node make-tickets.mjs --mint 60             # mint 60 new tickets, then print them
 //   ADMIN_TOKEN=... node make-tickets.mjs --unclaimed           # reprint every still-unclaimed ticket
 //   ADMIN_TOKEN=... node make-tickets.mjs                       # reprint all tickets
+//   node make-tickets.mjs --example                             # 6 fake "EX..." ids, no API/token/network at all
 //   options: --api https://kiosk.tilde.style/api   --out qr-sheet.local.html
 //
 // Each QR encodes https://kiosk.tilde.style/t/<ID> — a ticket id, never an invite code, so the
@@ -18,23 +19,28 @@ const flag = (name) => args.includes(`--${name}`);
 
 const API = opt('api', 'https://kiosk.tilde.style/api').replace(/\/$/, '');
 const BASE = opt('base', 'https://kiosk.tilde.style/t/');
-const OUT = opt('out', 'qr-sheet.local.html');
-const token = process.env.ADMIN_TOKEN;
-if (!token) { console.error('set ADMIN_TOKEN in the environment'); process.exit(1); }
-
-const call = async (path, init = {}) => {
-	const r = await fetch(API + path, { ...init, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' } });
-	const body = await r.json().catch(() => ({}));
-	if (!r.ok) throw new Error(`${path}: ${r.status} ${JSON.stringify(body)}`);
-	return body;
-};
+const OUT = opt('out', flag('example') ? 'example-qr-sheet.local.html' : 'qr-sheet.local.html');
 
 let ids;
-if (opt('mint')) {
-	ids = (await call('/admin/tickets', { method: 'POST', body: JSON.stringify({ count: Number(opt('mint')) }) })).ids;
-	console.log(`minted ${ids.length} tickets`);
+if (flag('example')) {
+	// "EX" prefix so these can never be mistaken for real ids — none of these exist in any
+	// database, nothing here touches the live API, ADMIN_TOKEN isn't even needed.
+	ids = ['EX7Q', 'EXK2', 'EXR9', 'EXB4', 'EXM8', 'EXT3'];
 } else {
-	ids = (await call('/admin/tickets' + (flag('unclaimed') ? '?unclaimed=1' : ''))).tickets.map((t) => t.id);
+	const token = process.env.ADMIN_TOKEN;
+	if (!token) { console.error('set ADMIN_TOKEN in the environment'); process.exit(1); }
+	const call = async (path, init = {}) => {
+		const r = await fetch(API + path, { ...init, headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' } });
+		const body = await r.json().catch(() => ({}));
+		if (!r.ok) throw new Error(`${path}: ${r.status} ${JSON.stringify(body)}`);
+		return body;
+	};
+	if (opt('mint')) {
+		ids = (await call('/admin/tickets', { method: 'POST', body: JSON.stringify({ count: Number(opt('mint')) }) })).ids;
+		console.log(`minted ${ids.length} tickets`);
+	} else {
+		ids = (await call('/admin/tickets' + (flag('unclaimed') ? '?unclaimed=1' : ''))).tickets.map((t) => t.id);
+	}
 }
 if (!ids.length) { console.error('no tickets to print'); process.exit(1); }
 

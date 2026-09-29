@@ -12,14 +12,18 @@ separate Worker in `worker/` on the route `kiosk.tilde.style/api/*`. See `DEPLOY
   point: participant picks Aster or memo.dog), browser OAuth client, Aster signup callback.
 - `public/index.html` — memo.dog's own account-creation form; `?invite=` pre-fills the code
   (reached via the ticket page's memo.dog choice, or directly as the walk-up path).
-- `public/staff.html` — password-protected invite-desk admin (`/staff`): ticket/code stats,
-  paste in codes minted elsewhere, mint more tickets. No longer a check-in console — real
-  memo.dog/Aster signups are visible via HappyView directly, no manual staff step needed.
+- `public/staff.html` — password-protected invite-desk admin (`/staff`): live stats, paste in
+  codes minted elsewhere, mint tickets, print the QR sheet straight from the browser (no laptop/
+  Node needed), and two tables (tickets, codes) with per-row revoke/un-revoke. No longer a
+  check-in console — real memo.dog/Aster signups are visible via HappyView directly.
 - `public/client-metadata.json` — OAuth client metadata.
-- `worker/` — ticket → invite-code API (Cloudflare Worker + D1); `schema.sql`, `wrangler.jsonc`.
-- `tools/` — `make-tickets.mjs` (mint tickets, print the QR sheet), `mint-memo-codes.mjs` (mint a
-  memo.dog invite code straight from the PDS into the ticket API), `test-create-prompt.mjs`
-  (read-only OAuth `prompt=create` probe against any PDS).
+- `worker/` — ticket → invite-code API (Cloudflare Worker + D1); `schema.sql`, `migrations/`,
+  `wrangler.jsonc`, `test.mjs` (full local test suite) + `test.sh` (runs it end to end: fresh
+  local D1, `wrangler dev`, tests, teardown — just run `./test.sh`).
+- `tools/` — `make-tickets.mjs` (mint tickets, print the QR sheet; `--example` makes a sample
+  sheet from 6 fake ids, no API/token/network needed), `mint-memo-codes.mjs` (mint a memo.dog
+  invite code straight from the PDS into the ticket API), `test-create-prompt.mjs` (read-only
+  OAuth `prompt=create` probe against any PDS).
 - `OPS.md` — how the PDS backing it runs, rate limits, troubleshooting.
 - `DEPLOY.md` — the manual deploy steps, in order.
 - `docs/` — upstream bug write-ups (youandme.at, cocoon).
