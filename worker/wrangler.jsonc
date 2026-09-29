@@ -2,8 +2,7 @@
   "name": "iosp-kiosk-api",
   "main": "src/index.js",
   "compatibility_date": "2026-09-01",
-  // Real database_id is filled in at deploy time (`wrangler d1 create iosp-kiosk`).
-  "d1_databases": [{ "binding": "DB", "database_name": "iosp-kiosk", "database_id": "00000000-0000-0000-0000-000000000000" }]
+  "d1_databases": [{ "binding": "DB", "database_name": "iosp-kiosk", "database_id": "00530189-d8a7-4ac0-ae6e-ed451ccc94a2" }],
+  "routes": [{ "pattern": "kiosk.tilde.style/api/*", "zone_name": "tilde.style" }]
   // Secret (never committed): ADMIN_TOKEN — `wrangler secret put ADMIN_TOKEN`.
-  // Route (added at deploy): kiosk.tilde.style/api/*
 }

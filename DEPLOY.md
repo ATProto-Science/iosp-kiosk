@@ -25,8 +25,8 @@ Add the route to `wrangler.jsonc` (zone must be the one holding tilde.style):
 npx wrangler deploy
 curl -s https://kiosk.tilde.style/api/ticket/ZZZZ     # expect {"error":"unknown ticket"} (JSON, not HTML)
 ```
-If that returns HTML, the Pages site is answering instead of the Worker: check the route.
-(Worker-route-over-Pages-domain precedence has not been tested for this project.)
+If that returns HTML, wait a minute and retry: route changes took ~1 minute to propagate on
+2026-09-29, after which the Worker route did take precedence over the Pages site on this domain.
 
 ## 2. Site (`public/`)
 
