@@ -1,0 +1,4 @@
+*.local.html
+assets/desk-qr.*
+node_modules/
+.env*

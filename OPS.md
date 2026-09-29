@@ -104,10 +104,10 @@ ssh haensel '~/toggle-ratelimit.sh on'    # back to defaults
 
 ## Known upstream bugs affecting this station
 
-- `YOUANDME-OAUTH-BUG.md` (repo root) — youandme.at's OAuth client sends PAR requests as
+- `docs/YOUANDME-OAUTH-BUG.md` — youandme.at's OAuth client sends PAR requests as
   `application/json`, not the RFC-9126-required `application/x-www-form-urlencoded`. Reported to
   `brookie.blog`.
-- `COCOON-PAR-CRASH-BUG.md` (repo root) — cocoon itself panics (nil-pointer dereference) on a PAR
+- `docs/COCOON-PAR-CRASH-BUG.md` — cocoon itself panics (nil-pointer dereference) on a PAR
   request built from real, spec-complete client metadata, independent of the above. Reported to
   `hailey.at`. This is *why* switching to cocoon for troubleshooting (see above) doesn't
   necessarily produce a clean youandme.at login test — cocoon may crash before getting that far.
