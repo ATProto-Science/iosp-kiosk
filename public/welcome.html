@@ -22,10 +22,9 @@
     const msg = document.getElementById("msg");
 
     // Best-effort, same spirit as landing-page/index.html's memo.dog equivalent: never
-    // blocks or fails the welcome message. Needs the repo:style.tilde.hacking.checkin
-    // scope requested in oauth.js's startSignup — UNTESTED against a real Aster account
-    // as of 2026-09-29; if that scope isn't actually granted, this just fails silently
-    // and the 'aster' track on the viewer/toon board stays at 0 until confirmed.
+    // blocks or fails the welcome message. Confirmed working live 2026-09-29 (via
+    // debug-login.html, an existing account, no invite code needed) — the granted
+    // repo:style.tilde.hacking.checkin scope does let this write succeed.
     async function recordAsterCheckin(session, did) {
       try {
         const agent = new Agent(session);
@@ -46,7 +45,9 @@
         const did = r.session.did;
         let handle = did;
         try { // public lookup on the account's own PDS
-          const issuer = (await r.session.getTokenInfo()).aud;
+          // .aud can come back with a trailing slash (confirmed live 2026-09-29: aster.id's
+          // did) — strip it, or the request 404s on a doubled "//xrpc/" path.
+          const issuer = (await r.session.getTokenInfo()).aud.replace(/\/$/, "");
           const d = await (await fetch(`${issuer}/xrpc/com.atproto.repo.describeRepo?repo=${encodeURIComponent(did)}`)).json();
           if (d.handle) handle = "@" + d.handle;
         } catch {}
