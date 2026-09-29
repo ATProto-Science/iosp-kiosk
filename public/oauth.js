@@ -20,18 +20,30 @@ export function getClient() {
 
 // Never returns: navigates the browser to the PDS. `state` round-trips the ticket id.
 //
-// `redirect_uri` MUST be explicit: client-metadata.json lists two redirect_uris (/staff,
-// /welcome — /staff predates this flow, kept for the invite-desk admin page's own possible
-// future OAuth use), and the library silently defaults to redirect_uris[0] if not told
-// otherwise. Confirmed live 2026-09-29: a real signup came back on /staff instead of
-// /welcome because of exactly this, losing the callback (recoverable only by hand-editing
-// the returned URL's path before the auth code expired).
+// `redirect_uri` MUST be explicit: client-metadata.json used to list a second, unused
+// redirect_uri (/staff, a leftover from before this flow existed — since removed), and the
+// library silently defaults to redirect_uris[0] if not told otherwise. Confirmed live
+// 2026-09-29: a real signup came back on /staff instead of /welcome because of exactly this,
+// permanently losing that session (an OAuth authorization code is bound server-side to
+// whichever redirect_uri was used to request it — not fixable after the fact by navigating
+// to the right path by hand, confirmed the same day).
 export async function startSignup(pdsUrl, ticketId) {
   const client = await getClient();
   await client.signIn(pdsUrl, {
     prompt: "create",
     scope: SIGNUP_SCOPE,
     state: ticketId,
+    redirect_uri: "https://kiosk.tilde.style/welcome",
+  });
+}
+
+// Plain login (no prompt=create, no invite code needed) against an EXISTING account —
+// debug-login.html's only caller. Lets us verify welcome.html's check-in write against a
+// real session without spending a scarce invite code on a fresh signup.
+export async function startLogin(identifier) {
+  const client = await getClient();
+  await client.signIn(identifier, {
+    scope: SIGNUP_SCOPE,
     redirect_uri: "https://kiosk.tilde.style/welcome",
   });
 }
