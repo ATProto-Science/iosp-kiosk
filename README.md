@@ -8,12 +8,20 @@ Deployed as its own Cloudflare Pages project at `kiosk.tilde.style` (no git-inte
 deploy — `wrangler pages deploy public`; only `public/` is ever served). The ticket API is a
 separate Worker in `worker/` on the route `kiosk.tilde.style/api/*`. See `DEPLOY.md`.
 
-- `public/index.html` — one-page account-creation form (currently memo.dog only); `?invite=` pre-fills the code.
-- `public/staff.html` — password-protected check-in console (`/staff`).
-- `public/ticket.html`, `oauth.js`, `welcome.html` — ticket page (`/t/ABCD`), browser OAuth client, callback.
-- `worker/` — ticket → invite-code API (Cloudflare Worker + D1). `tools/` — OAuth probe.
+- `public/ticket.html`, `oauth.js`, `welcome.html` — ticket page (`/t/ABCD`, the actual entry
+  point: participant picks Aster or memo.dog), browser OAuth client, Aster signup callback.
+- `public/index.html` — memo.dog's own account-creation form; `?invite=` pre-fills the code
+  (reached via the ticket page's memo.dog choice, or directly as the walk-up path).
+- `public/staff.html` — password-protected invite-desk admin (`/staff`): ticket/code stats,
+  paste in codes minted elsewhere, mint more tickets. No longer a check-in console — real
+  memo.dog/Aster signups are visible via HappyView directly, no manual staff step needed.
 - `public/client-metadata.json` — OAuth client metadata.
+- `worker/` — ticket → invite-code API (Cloudflare Worker + D1); `schema.sql`, `wrangler.jsonc`.
+- `tools/` — `make-tickets.mjs` (mint tickets, print the QR sheet), `mint-memo-codes.mjs` (mint a
+  memo.dog invite code straight from the PDS into the ticket API), `test-create-prompt.mjs`
+  (read-only OAuth `prompt=create` probe against any PDS).
 - `OPS.md` — how the PDS backing it runs, rate limits, troubleshooting.
+- `DEPLOY.md` — the manual deploy steps, in order.
 - `docs/` — upstream bug write-ups (youandme.at, cocoon).
 
 ## Not in this repo
