@@ -17,7 +17,28 @@
   </div></div></section></main>
   <script type="module">
     import { restoreSession } from "/oauth.js";
+    import { Agent } from "https://esm.sh/@atproto/api@0.13";
+    const CHECKIN_COLLECTION = "style.tilde.hacking.checkin";
     const msg = document.getElementById("msg");
+
+    // Best-effort, same spirit as landing-page/index.html's memo.dog equivalent: never
+    // blocks or fails the welcome message. Needs the repo:style.tilde.hacking.checkin
+    // scope requested in oauth.js's startSignup — UNTESTED against a real Aster account
+    // as of 2026-09-29; if that scope isn't actually granted, this just fails silently
+    // and the 'aster' track on the viewer/toon board stays at 0 until confirmed.
+    async function recordAsterCheckin(session, did) {
+      try {
+        const agent = new Agent(session);
+        await agent.com.atproto.repo.createRecord({
+          repo: did,
+          collection: CHECKIN_COLLECTION,
+          record: { $type: CHECKIN_COLLECTION, track: "aster", createdAt: new Date().toISOString() },
+        });
+      } catch (err) {
+        console.warn("aster check-in record failed:", err.message);
+      }
+    }
+
     try {
       const r = await restoreSession();
       if (!r) msg.textContent = "Nothing to finish here — if you meant to sign up, open your ticket link.";
@@ -30,6 +51,7 @@
           if (d.handle) handle = "@" + d.handle;
         } catch {}
         msg.textContent = `Welcome, ${handle}!`;
+        recordAsterCheckin(r.session, did);
       }
     } catch (e) { msg.textContent = "Signup finished, but we couldn't confirm the session: " + e.message; }
   </script>
