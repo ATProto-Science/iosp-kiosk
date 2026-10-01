@@ -1,42 +1,31 @@
-# iosp-kiosk
+# IOSP Conference Kiosk
 
-Registration desk for the IOSP 2026 ATScience workshop (Leiden). Split out of
-[`iosp-hacking-stations`](https://github.com/ATProto-Science/iosp-hacking-stations) so the
-desk and the station code can be worked on independently.
+One QR code for everyone opens this static onboarding site for the IOSP conference. This is the expected flow:
+1. An attendee signs in with an existing Atmosphere account, or creates an account on the temporary (no invite codes required) event PDS. a. The site writes a `community.lexicon.calendar.rsvp` record to the attendee's own account. b. Airglow watches for that collection, filters by `subject.uri` and status, and adds the record author's DID to the atproto.science conference list.
+2. People land on a welcome page with 
+    - an Aster migration link (redirect there needs to be modified)
+    - links to workshop sites -> currently just has placeholders
+    - shows a public Bluesky feed
+    - shows the public IOSP attendees/participants list
 
-Deployed as its own Cloudflare Pages project at `kiosk.tilde.style` (no git-integration
-deploy — `wrangler pages deploy public`; only `public/` is ever served). The ticket API is a
-separate Worker in `worker/` on the route `kiosk.tilde.style/api/*`. See `DEPLOY.md`.
+We can add additional Atmospheric components in the right panel with graze as sort of tabs: one for the feed, one for an open Semble collection for the conference, and any others that seem particularly suitable.
 
-- `public/ticket.html`, `oauth.js`, `welcome.html` — ticket page (`/t/ABCD`, the actual entry
-  point: participant picks Aster or memo.dog), browser OAuth client, Aster signup callback.
-- `public/index.html` — memo.dog's own account-creation form; `?invite=` pre-fills the code
-  (reached via the ticket page's memo.dog choice, or directly as the walk-up path).
-- `public/staff.html` — password-protected invite-desk admin (`/staff`): live stats, paste in
-  codes minted elsewhere, mint tickets, print the QR sheet straight from the browser (no laptop/
-  Node needed), and two tables (tickets, codes) with per-row revoke/un-revoke. No longer a
-  check-in console — real memo.dog/Aster signups are visible via HappyView directly.
-- `public/client-metadata.json` — OAuth client metadata.
-- `worker/` — ticket → invite-code API (Cloudflare Worker + D1); `schema.sql`, `migrations/`,
-  `wrangler.jsonc`, `test.mjs` (full local test suite) + `test.sh` (runs it end to end: fresh
-  local D1, `wrangler dev`, tests, teardown — just run `./test.sh`).
-- `tools/` — `make-tickets.mjs` (mint tickets, print the QR sheet; `--example` makes a sample
-  sheet from 6 fake ids, no API/token/network needed), `mint-memo-codes.mjs` (mint a memo.dog
-  invite code straight from the PDS into the ticket API), `test-create-prompt.mjs` (read-only
-  OAuth `prompt=create` probe against any PDS).
-- `OPS.md` — how the PDS backing it runs, rate limits, troubleshooting.
-- `DEPLOY.md` — the manual deploy steps, in order.
-- `docs/` — upstream bug write-ups (youandme.at, cocoon).
+## Development
 
-## Not in this repo
+1. Serve the public site locally to test login/signup. e.g.,
+  ```npx http-server public -a 127.0.0.1 -p 8765 -c-1```
+2. Format css, html, json, and js files after editing: `npm run format`
 
-- **Invite codes and desk QR images** — never committed (public repo). `assets/desk-qr.*` and
-  `*.local.html` are gitignored. Mint codes on the PDS; generate QR sheets locally.
-- The `style.tilde.hacking.*` lexicons and `site.css` live in `iosp-hacking-stations/landing-page/`
-  (shared with `viewer.html`); the kiosk links to `hacking.tilde.style/site.css`.
+## TODO List
 
-## Ticket flow
+1. **Settle deployment method and URL.** See [DEPLOY.md](DEPLOY.md) for details.
+2. **Create the event reference.** Create a `community.lexicon.calendar.event` record on atmo.rsvp
+3. **Choose the RSVP record key.** Keep `rsvpRkey` a valid 13-character TID; `putRecord` upserts one RSVP per attendee at this key.
+4. **Configure Airglow.** Watch `community.lexicon.calendar.rsvp`, filtering `subject.uri` to the event and `status` to `community.lexicon.calendar.rsvp#going`; the action adds the record author's DID to the conference list.
+5. **Confirm account creation.** The current path creates an account directly at `https://memo.dog` with no invite code and fails because invite codes are required. To use another PDS instead, modify the account-creation requirements (handle suffix, email verification, password policy, CORS) and edit `config.js` accordingly.
 
-QR encodes `kiosk.tilde.style/t/<4-char id>` → participant picks Aster (main) or memo.dog
-(temporary) → the Worker hands out one invite code → Aster: OAuth with `prompt=create`;
-memo.dog: the existing form.
+## Scope
+
+- OAuth only requests `atproto` (required for all atproto logins) and create+update permission for RSVP records.
+- The direct signup path uses the new account's returned session token only in memory to write its RSVP; refresh means signing in again via OAuth.
+- The site uses relative paths throughout for GitHub Pages' `/iosp-kiosk/` prefix. A copy under a different origin needs the OAuth metadata and `config.js` updated together.

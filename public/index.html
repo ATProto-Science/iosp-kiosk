@@ -1,256 +1,237 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Create your memo.dog account — IOSP 2026</title>
-  <link rel="stylesheet" href="https://hacking.tilde.style/site.css">
-  <style>
-    /* Form elements aren't part of site.css yet — scoped here, same token palette. */
-    .signup-form { max-width: 30rem; }
-    .signup-form label {
-      display: block;
-      margin-top: 1.25rem;
-      font-size: 0.875rem;
-      color: var(--smoke);
-      letter-spacing: 0.02em;
-    }
-    .signup-form input {
-      width: 100%;
-      margin-top: 0.4rem;
-      padding: 0.6rem 0.75rem;
-      background-color: var(--night);
-      border: 1px solid var(--log);
-      border-radius: 4px;
-      color: var(--ash);
-      font-family: var(--font-body);
-      font-size: 1rem;
-    }
-    .signup-form input:focus {
-      outline: none;
-      border-color: var(--fire);
-    }
-    .handle-row { display: flex; align-items: center; gap: 0.5rem; }
-    .handle-row input { flex: 1; margin-top: 0.4rem; }
-    .handle-suffix { color: var(--smoke); white-space: nowrap; padding-top: 0.4rem; }
-    .signup-form button {
-      margin-top: 1.5rem;
-      padding: 0.7rem 1.5rem;
-      background-color: var(--fire);
-      color: var(--ash);
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      font-family: var(--font-body);
-      cursor: pointer;
-    }
-    .signup-form button:hover { background-color: var(--ember); }
-    .signup-form button:disabled { background-color: var(--log); color: var(--smoke); cursor: not-allowed; }
-    .msg {
-      margin-top: 1.25rem;
-      padding: 0.85rem 1rem;
-      border-radius: 4px;
-      font-size: 0.9rem;
-    }
-    .msg.error { background-color: var(--ground); border: 1px solid var(--ember); color: var(--ash); }
-    .msg.success { background-color: var(--ground); border: 1px solid var(--fire); color: var(--ash); }
-    .msg code { display: block; margin-top: 0.5rem; word-break: break-all; }
-    details.fallback { margin-top: 1.5rem; color: var(--smoke); font-size: 0.9rem; }
-    details.fallback summary { cursor: pointer; color: var(--spark); }
-    details.fallback ol { padding-left: 1.25em; margin-top: 0.75rem; }
-    details.fallback ol li { margin-bottom: 0.5em; }
-    .fill-default {
-      cursor: pointer;
-      border-bottom: 1px dashed var(--spark);
-    }
-    .fill-default:hover, .fill-default:focus { background-color: var(--night); }
-  </style>
-</head>
-<body class="clearing">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Open web at IOSP 2026</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <div class="brand">
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <g transform="rotate(30 16 16)">
+              <path d="M25.97 20.65A11 11 0 1 1 25.97 11.35" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" />
+              <path d="M-1.8 0 1.8 0 0 3Z" transform="translate(25.97 11.35) rotate(-25)" fill="#1d2d8e" />
+            </g>
+          </svg>
+          <span>Institute of Open Science Practices</span>
+        </div>
+        <button type="button" class="header-logout" id="sign-out" hidden>Log out</button>
+      </header>
 
-  <header class="hearth">
-    <div class="hearth-inner">
-      <h1 class="site-name">Create your memo.dog account</h1>
-      <p class="site-tagline">Get set up in under a minute — IOSP 2026 workshop.</p>
-    </div>
-  </header>
-
-  <main>
-    <section class="gathered" id="signup">
-      <div class="gathered-inner">
-        <div class="style-card">
-          <h3>Account details</h3>
-          <p>Pick a username and password, and you're in. You'll need an invite
-          code from the station — scanning the QR code at the desk fills it in
-          for you, so just ask a staff member if that field is blank.</p>
-
-          <form id="signup-form" class="signup-form">
-            <label for="prefix">Handle</label>
-            <div class="handle-row">
-              <input id="prefix" placeholder="yourname" required pattern="[a-zA-Z0-9-]+" autocomplete="username">
-              <span class="handle-suffix">.memo.dog</span>
+      <section class="screen" id="choose" aria-labelledby="choose-title">
+        <div class="paper entry-paper">
+          <div class="folio-meta">
+            <span>IOSP 2026 <span class="meta-divider">·</span> Edition 03</span><span>Oct 12–15 <span class="meta-divider">/</span> Leiden</span>
+          </div>
+          <div class="entry-layout">
+            <div class="entry-intro">
+              <svg class="hero-mark" viewBox="0 0 32 32" aria-hidden="true">
+                <g transform="rotate(30 16 16)">
+                  <path d="M25.97 20.65A11 11 0 1 1 25.97 11.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                  <path d="M-1.8 0 1.8 0 0 3Z" transform="translate(25.97 11.35) rotate(-25)" fill="#1d2d8e" />
+                </g>
+              </svg>
+              <h1 id="choose-title" tabindex="-1">IOSP 2026</h1>
+              <p class="entry-lead">Your way into <em>the open web.</em></p>
             </div>
+            <div class="entry-actions">
+              <p class="eyebrow">Get started</p>
+              <p class="action-intro">Use your account for the workshops and conference feed.</p>
+              <div class="choices" aria-label="Choose an account path">
+                <button class="choice" type="button" data-path="existing">
+                  <span class="number">01</span
+                  ><span class="choice-body"
+                    ><span class="choice-title">Sign in with your account</span
+                    ><span class="redacted" aria-hidden="true">Use the Atmosphere account you already have.</span></span
+                  ><span class="arrow" aria-hidden="true">→</span>
+                </button>
+                <button class="choice" type="button" data-path="temporary">
+                  <span class="number">02</span
+                  ><span class="choice-body"
+                    ><span class="choice-title">Get a temporary account</span
+                    ><span class="redacted" aria-hidden="true">For workshops now; migration can happen anytime.</span></span
+                  ><span class="arrow" aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <p id="disclosure" class="disclosure" hidden>Your RSVP is public. Signing in adds your account to the IOSP participant list.</p>
+        </div>
+      </section>
 
-            <label for="password">Password — pre-filled as
-            <code class="fill-default" id="password-default" tabindex="0" role="button" title="Click to use this password">W00f-b@rk</code>,
-            change it if you like</label>
-            <input id="password" type="password" required minlength="8" pattern="(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).{8,}" autocomplete="new-password" value="W00f-b@rk">
+      <section class="screen" id="identity" aria-labelledby="identity-title" hidden>
+        <button class="back" type="button" data-go="choose">← Account options</button>
+        <div class="paper form-paper">
+          <div class="folio-meta">
+            <span>IOSP 2026 <span class="meta-divider">·</span> Account</span><span>Oct 12–15 <span class="meta-divider">/</span> Leiden</span>
+          </div>
+          <div class="form-layout">
+            <div class="form-intro">
+              <p class="eyebrow">Open web access</p>
+              <h1 id="identity-title" tabindex="-1">Sign in to IOSP</h1>
+              <p id="identity-explanation" class="supporting"></p>
+            </div>
+            <form class="identity-step" id="account-form">
+              <label for="handle" id="handle-label">Your handle</label>
+              <div class="input-row">
+                <input id="handle" type="text" placeholder="you.bsky.social" spellcheck="false" autocomplete="username" required /><span
+                  class="input-suffix"
+                  id="handle-suffix"
+                  hidden
+                ></span>
+              </div>
+              <div id="signup-fields" hidden>
+                <label for="password">Password</label><input id="password" type="password" minlength="8" autocomplete="new-password" />
+                <p class="field-note">Keep this password safe; account recovery may not be available.</p>
+              </div>
+              <button class="primary" type="submit" id="continue">
+                <span id="continue-label">Continue to sign in</span><span aria-hidden="true">→</span>
+              </button>
+              <p id="form-status" class="form-status" role="alert" hidden></p>
+            </form>
+          </div>
+        </div>
+      </section>
 
-            <label for="invite">Invite code</label>
-            <input id="invite" placeholder="memo-dog-xxxxx-xxxxx" required>
-
-            <button type="submit">Create account</button>
-          </form>
-
-          <div id="result"></div>
-
-          <details class="fallback">
-            <summary>Form not working? Use the Bluesky app manually</summary>
-            <ol>
-              <li>Open the Bluesky app (or bsky.app), start account creation.</li>
-              <li>You'll see a line: <em>"You are creating an account on Bluesky Social"</em>
-                — this looks like a label, but it's actually tappable. Tap it.</li>
-              <li>Choose "Custom" and enter <code>memo.dog</code> as the hosting provider.</li>
-              <li>Continue with handle, email, password, and the invite code as normal.</li>
-            </ol>
-          </details>
+      <section class="screen" id="joined" aria-labelledby="joined-title" hidden>
+        <div class="paper joined-paper">
+          <div class="folio-meta">
+            <span>IOSP 2026 <span class="meta-divider">·</span> Your account</span><span>Oct 12–15 <span class="meta-divider">/</span> Leiden</span>
+          </div>
+          <div class="joined-intro">
+            <div>
+              <p class="eyebrow">Welcome</p>
+              <h1 id="joined-title" tabindex="-1">You're here.</h1>
+              <p class="supporting">Signed in as <strong id="joined-handle"></strong></p>
+            </div>
+            <svg class="joined-mark" viewBox="0 0 32 32" aria-hidden="true">
+              <g transform="rotate(30 16 16)">
+                <path d="M25.97 20.65A11 11 0 1 1 25.97 11.35" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                <path d="M-1.8 0 1.8 0 0 3Z" transform="translate(25.97 11.35) rotate(-25)" fill="#1d2d8e" />
+              </g>
+            </svg>
+          </div>
+          <div class="account-line">
+            <p id="rsvp-status" class="rsvp-status" role="status" hidden></p>
+            <button type="button" id="retry-rsvp" class="text-action" hidden>Retry RSVP ↻</button
+            ><button type="button" class="migration-offer" id="migration-link" hidden>
+              Move this account to Aster <span aria-hidden="true">↗</span>
+            </button>
+          </div>
         </div>
 
-        <div class="style-card">
-          <h3>Joined so far</h3>
-          <p class="smoke-text" id="joined-status">loading…</p>
+        <div class="joined-columns">
+          <section class="workshops paper" aria-labelledby="workshops-title">
+            <h2 id="workshops-title" class="section-heading">Workshops</h2>
+            <p class="workshop-intro redacted" aria-hidden="true">Find your way to the workshops and meet the people building the open web.</p>
+            <div class="workshop-row" aria-hidden="true">
+              <span class="number">01</span
+              ><span class="workshop-copy"
+                ><span class="redacted workshop-title">Build an open science network together</span
+                ><span class="redacted workshop-detail">Oct 12 · In person at the conference</span
+                ><span class="redacted workshop-action">Explore workshop</span></span
+              >
+            </div>
+            <div class="workshop-row" aria-hidden="true">
+              <span class="number">02</span
+              ><span class="workshop-copy"
+                ><span class="redacted workshop-title">Explore the tools of the Atmosphere</span
+                ><span class="redacted workshop-detail">Oct 13 · Learn by making something</span
+                ><span class="redacted workshop-action">Explore workshop</span></span
+              >
+            </div>
+            <div class="workshop-row" aria-hidden="true">
+              <span class="number">03</span
+              ><span class="workshop-copy"
+                ><span class="redacted workshop-title">Meet the community around research</span
+                ><span class="redacted workshop-detail">Oct 14 · Find the next thing to do</span
+                ><span class="redacted workshop-action">Explore workshop</span></span
+              >
+            </div>
+          </section>
+          <section class="feed-preview paper" aria-labelledby="feed-title">
+            <div class="feed-heading">
+              <h2 id="feed-title" class="section-heading">Conference feed</h2>
+              <button type="button" class="text-action" id="open-feed">Open in… ↗</button>
+            </div>
+            <iframe
+              id="conference-feed"
+              title="IOSP conference feed on Graze"
+              data-src="https://graze.social/feeds/embed/36300?frameless=1&amp;bgColor=%23ffffff&amp;primaryTextColor=%2314161d&amp;secondaryTextColor=%2350576a&amp;fontFamily=Geist"
+              loading="lazy"
+              referrerpolicy="no-referrer"
+            ></iframe>
+          </section>
         </div>
+
+        <section class="participants paper" aria-labelledby="participants-title">
+          <h2 id="participants-title" class="section-heading">Participants</h2>
+          <p id="participant-status" class="participant-status" role="status">Loading participants…</p>
+          <div id="participant-list" class="participant-list"></div>
+          <button id="view-participants" class="text-action" type="button" aria-controls="participant-list" aria-expanded="false" hidden>
+            View full list ↓
+          </button>
+        </section>
+      </section>
+
+      <section class="screen" id="migration" aria-labelledby="migration-title" hidden>
+        <button class="back" type="button" data-go="joined">← Back to IOSP</button>
+        <div class="paper form-paper">
+          <div class="folio-meta">
+            <span>IOSP 2026 <span class="meta-divider">·</span> Your account</span><span>Oct 12–15 <span class="meta-divider">/</span> Leiden</span>
+          </div>
+          <div class="form-intro">
+            <p class="eyebrow">After you join</p>
+            <h1 id="migration-title" tabindex="-1">Move to Aster later</h1>
+            <p class="supporting">Moving your account is optional. You can do it at any time, including at the atproto.science workshop.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <dialog class="app-picker" id="app-picker" aria-labelledby="app-picker-title">
+      <div class="picker-heading">
+        <h2 id="app-picker-title">Open feed in…</h2>
+        <button type="button" class="picker-close" id="close-picker" aria-label="Close app picker">×</button>
       </div>
-    </section>
-  </main>
-
-  <footer class="embers">
-    <div class="embers-inner">
-      <p><a href="https://hacking.tilde.style/" class="spark">← Back to hacking.tilde.style</a> ·
-      <a href="https://kiosk.tilde.style/staff" class="spark">Staff</a></p>
-    </div>
-  </footer>
-
-  <script>
-    const PDS_URL = "https://memo.dog";
-    // Read-only, rate-limited key, same one the rest of the landing page uses.
-    const HAPPYVIEW_URL = "https://happyview.werk.museum";
-    const CLIENT_KEY = "hvc_4f63d844f5a253fe658f1491160126dc";
-    const CHECKIN_COLLECTION = "style.tilde.hacking.checkin";
-
-    const DEFAULT_PASSWORD = document.getElementById("password-default").textContent;
-    function fillDefaultPassword() {
-      document.getElementById("password").value = DEFAULT_PASSWORD;
-    }
-    const passwordDefaultEl = document.getElementById("password-default");
-    passwordDefaultEl.addEventListener("click", fillDefaultPassword);
-    passwordDefaultEl.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fillDefaultPassword(); }
-    });
-
-    // The desk's QR code encodes ?invite=<code> so this never needs typing —
-    // one shared multi-use code minted via the PDS's own admin invite-code
-    // API, never committed to this (public) repo's source.
-    const inviteFromUrl = new URLSearchParams(location.search).get("invite");
-    if (inviteFromUrl) document.getElementById("invite").value = inviteFromUrl;
-
-    async function loadJoinedCount() {
-      const statusEl = document.getElementById("joined-status");
-      try {
-        const res = await fetch(
-          `${HAPPYVIEW_URL}/xrpc/style.tilde.hacking.listCheckins?limit=200`,
-          { headers: { "X-Client-Key": CLIENT_KEY } }
-        );
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        const count = (data.records ?? []).filter((r) => r.track === "memo.dog").length;
-        statusEl.textContent = `${count} memo.dog account${count === 1 ? "" : "s"} created`;
-      } catch (err) {
-        statusEl.textContent = `couldn't load (${err.message})`;
-      }
-    }
-
-    // Best-effort — a failure here never blocks or fails the account creation
-    // above, it just means this one signup won't show up on the kiosk/table.
-    async function recordCheckin(did, accessJwt, track) {
-      try {
-        const res = await fetch(`${PDS_URL}/xrpc/com.atproto.repo.createRecord`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${accessJwt}`,
-          },
-          body: JSON.stringify({
-            repo: did, // the DID always works here, regardless of which PDS is running
-            collection: CHECKIN_COLLECTION,
-            record: {
-              $type: CHECKIN_COLLECTION,
-              track,
-              createdAt: new Date().toISOString(),
-            },
-          }),
-        });
-        if (!res.ok) {
-          console.warn("checkin record failed:", await res.text());
-        }
-      } catch (err) {
-        console.warn("checkin record failed:", err.message);
-      }
-      loadJoinedCount();
-    }
-
-    loadJoinedCount();
-    setInterval(loadJoinedCount, 5000);
-
-    document.getElementById("signup-form").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const resultEl = document.getElementById("result");
-      resultEl.innerHTML = "";
-
-      const prefix = document.getElementById("prefix").value.trim().toLowerCase();
-      const handle = `${prefix}.memo.dog`;
-      // memo.dog's PDS has no SMTP configured — no verification email is
-      // ever actually sent, so there's no reason to ask for a real one.
-      // Derived, not typed: satisfies the PDS's required-field check only.
-      const email = `${prefix}@memo.dog`;
-      const password = document.getElementById("password").value;
-      const inviteCode = document.getElementById("invite").value.trim();
-
-      const submitBtn = e.target.querySelector("button");
-      submitBtn.disabled = true;
-      submitBtn.textContent = "Creating…";
-
-      try {
-        const res = await fetch(`${PDS_URL}/xrpc/com.atproto.server.createAccount`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ handle, email, password, inviteCode }),
-        });
-        const data = await res.json();
-
-        if (!res.ok) {
-          throw new Error(data.message || data.error || `HTTP ${res.status}`);
-        }
-
-        resultEl.innerHTML = `<div class="msg success">
-          Account created — <strong>${data.handle}</strong>.<br>
-          Save your password somewhere; there's no recovery flow for a
-          workshop-duration test account.<br>
-          DID: <code>${data.did}</code>
-        </div>`;
-        e.target.reset();
-        if (inviteFromUrl) document.getElementById("invite").value = inviteFromUrl;
-
-        if (data.accessJwt) {
-          recordCheckin(data.did, data.accessJwt, "memo.dog");
-        }
-      } catch (err) {
-        resultEl.innerHTML = `<div class="msg error">Couldn't create the account: ${err.message}</div>`;
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "Create account";
-      }
-    });
-  </script>
-</body>
+      <p class="picker-note">Some apps may ask you to sign in.</p>
+      <h3>Bluesky clients</h3>
+      <div class="app-options">
+        <a href="https://bsky.app/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Bluesky <span>Open ↗</span></a
+        >
+        <a href="https://anisota.net/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Anisota <span>Open ↗</span></a
+        >
+        <a href="https://bluepy.social/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Bluepy <span>Open ↗</span></a
+        >
+        <a href="https://impro.social/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Impro <span>Open ↗</span></a
+        >
+      </div>
+      <h3>Bluesky forks</h3>
+      <div class="app-options">
+        <a href="https://blacksky.community/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Blacksky <span>Open ↗</span></a
+        >
+        <a href="https://witchsky.app/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Witchsky <span>Open ↗</span></a
+        >
+        <a href="https://mu.social/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Mu <span>Open ↗</span></a
+        >
+        <a href="https://deer.social/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Deer <span>Open ↗</span></a
+        >
+        <a href="https://northsky.app/profile/did:plc:nncebyouba4ex3775syiyvjy/feed/iosp-conference" target="_blank" rel="noopener noreferrer"
+          >Northsky <span>Open ↗</span></a
+        >
+      </div>
+    </dialog>
+    <script type="module" src="./app.js"></script>
+  </body>
 </html>

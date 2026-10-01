@@ -1,5 +1,0 @@
-# Destination is extensionless on purpose: Cloudflare Pages' own .html-stripping
-# canonicalization redirects (308) any rewrite target that literally ends in .html,
-# discarding the wildcard match entirely (confirmed live 2026-09-29: /t/<id> -> /ticket,
-# losing <id>). Pointing at the already-clean path avoids that second redirect.
-/t/*  /ticket  200
